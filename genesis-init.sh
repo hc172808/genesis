@@ -6,7 +6,7 @@
 # ============================================================
 set -euo pipefail
 
-GYDS_CHAIN_ID="${GYDS_CHAIN_ID:-1337}"
+GYDS_CHAIN_ID="${GYDS_CHAIN_ID:-13370}"
 GYDS_NETWORK_NAME="${GYDS_NETWORK_NAME:-GYDS Chain}"
 GYDS_DATADIR="${GYDS_DATADIR:-./data/genesis}"
 NUM_VALIDATORS="${NUM_VALIDATORS:-3}"
