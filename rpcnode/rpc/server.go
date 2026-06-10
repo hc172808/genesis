@@ -12,6 +12,7 @@ import (
         "strconv"
         "strings"
         "sync"
+        "sync/atomic"
         "time"
 
         "github.com/gorilla/mux"
@@ -36,6 +37,11 @@ type Server struct {
 
         pendingTx   map[string]*core.Transaction
         pendingTxMu sync.RWMutex
+
+        // metrics counters (accessed with sync/atomic)
+        reqTotal  int64
+        wsActive  int64
+        startTime time.Time
 }
 
 type subscriber struct {
@@ -46,9 +52,10 @@ type subscriber struct {
 func NewServer(chain *core.Chain, port, wsPort int, host string, corsOrigins []string) *Server {
         s := &Server{
                 chain: chain, port: port, wsPort: wsPort, host: host, cors: corsOrigins,
-                upgrader: websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }},
+                upgrader:  websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }},
                 subs:      make(map[string]*subscriber),
                 pendingTx: make(map[string]*core.Transaction),
+                startTime: time.Now(),
         }
         s.setupRoutes()
         return s
@@ -83,6 +90,7 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 func (s *Server) setupRoutes() {
         r := mux.NewRouter()
         r.HandleFunc("/health", s.handleHealth).Methods("GET")
+        r.HandleFunc("/metrics", s.handleMetrics).Methods("GET")
         r.HandleFunc("/", s.handleDashboard).Methods("GET")
         r.HandleFunc("/", s.handleJSONRPC).Methods("POST", "OPTIONS")
         r.HandleFunc("/rpc", s.handleJSONRPC).Methods("POST", "OPTIONS")
@@ -231,12 +239,14 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
         if err != nil {
                 return
         }
+        atomic.AddInt64(&s.wsActive, 1)
         id := fmt.Sprintf("%p", conn)
         sub := &subscriber{conn: conn, ch: make(chan interface{}, 64)}
         s.subsMu.Lock()
         s.subs[id] = sub
         s.subsMu.Unlock()
         defer func() {
+                atomic.AddInt64(&s.wsActive, -1)
                 s.subsMu.Lock()
                 delete(s.subs, id)
                 s.subsMu.Unlock()
@@ -269,6 +279,7 @@ type jsonRPCResponse struct {
 }
 
 func (s *Server) handleJSONRPC(w http.ResponseWriter, r *http.Request) {
+        atomic.AddInt64(&s.reqTotal, 1)
         defer r.Body.Close()
         var raw json.RawMessage
         if err := json.NewDecoder(r.Body).Decode(&raw); err != nil {

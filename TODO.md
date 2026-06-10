@@ -63,7 +63,7 @@ Wallets, websites, dApps, and block explorers all connect through it.
 - [x] Health-check cron (auto-restart on failure)
 - [ ] Load balancer config (HAProxy / Cloudflare) for high-availability
 - [ ] Multiple RPC node instances behind a single domain
-- [ ] Prometheus metrics endpoint (`/metrics`) for Grafana monitoring
+- [x] Prometheus metrics endpoint (`/metrics`) for Grafana monitoring
 - [ ] Uptime status page (Uptime Kuma or similar)
 - [ ] DDoS protection (Cloudflare proxy)
 - [ ] Backup node with automatic failover
