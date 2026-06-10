@@ -163,18 +163,13 @@ if ! id "$APP_USER" &>/dev/null; then
 fi
 $USE_DOCKER && command -v docker &>/dev/null && usermod -aG docker "$APP_USER" || true
 
-log "Configuring firewall..."
-ufw default deny incoming
-ufw default allow outgoing
-ufw allow "$SSH_PORT"/tcp         comment "SSH"
-ufw allow 80/tcp                  comment "HTTP"
-ufw allow 443/tcp                 comment "HTTPS"
-ufw allow "$GYDS_RPC_PORT"/tcp    comment "GYDS RPC"
-ufw allow "$GYDS_WS_PORT"/tcp     comment "GYDS WebSocket"
-ufw allow "$GYDS_P2P_PORT"/tcp    comment "GYDS P2P"
-ufw allow "$GYDS_P2P_PORT"/udp    comment "GYDS P2P UDP"
-ufw --force enable
-log "Firewall: RPC (${GYDS_RPC_PORT}), WS (${GYDS_WS_PORT}), P2P (${GYDS_P2P_PORT}) open."
+log "Configuring firewall + fail2ban..."
+SSH_PORT="$SSH_PORT" \
+RPC_PORT="$GYDS_RPC_PORT" \
+WS_PORT="$GYDS_WS_PORT" \
+P2P_PORT="$GYDS_P2P_PORT" \
+  bash "${APP_DIR}/setup-firewall.sh"
+log "Firewall + fail2ban configured."
 
 mkdir -p "$APP_DIR"
 if [ ! -d "$APP_DIR/.git" ]; then

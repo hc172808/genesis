@@ -28,8 +28,8 @@ Wallets, websites, dApps, and block explorers all connect through it.
 - [x] TLS warning banner (shows when running over HTTP)
 - [x] Recent blocks table (last 20 blocks, auto-refresh)
 - [x] Live RPC tester (click-to-run common methods)
-- [ ] Transaction search — type a tx hash and see full details
-- [ ] Address/wallet lookup — show balance, tx history, nonce
+- [x] Transaction search — type a tx hash and see full details
+- [x] Address/wallet lookup — show balance, tx history, nonce
 - [ ] Block detail page — click a block row to see all transactions
 - [ ] Light mode / dark mode toggle
 - [ ] Block chart — graph of tx count per block over time
@@ -54,6 +54,10 @@ Wallets, websites, dApps, and block explorers all connect through it.
 - [x] Optional Certbot TLS (`--domain`)
 - [x] Docker + Docker Compose
 - [x] UFW firewall rules in setup script
+- [x] fail2ban — custom jails + filters for all 4 nodes
+- [x] Firewall hardening script (`setup-firewall.sh`) for all 4 nodes
+- [x] Sysctl network hardening (SYN flood, IP spoofing, ICMP redirect)
+- [x] SSH hardening (key-only, MaxAuthTries 3) on validator node
 - [x] Health-check cron (auto-restart on failure)
 - [ ] Load balancer config (HAProxy / Cloudflare) for high-availability
 - [ ] Multiple RPC node instances behind a single domain
@@ -142,6 +146,7 @@ Wallets, websites, dApps, and block explorers all connect through it.
 ### Security
 - [ ] Smart contract audit (when staking / governance contracts are ready)
 - [ ] Penetration test on public rpcnode (Nginx, RPC surface)
+- [x] fail2ban + firewall hardening on all 4 nodes
 - [ ] Bug bounty program
 - [ ] Incident response playbook
 
