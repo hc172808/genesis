@@ -1,0 +1,23 @@
+services:
+  gyds-validatornode:
+    build: .
+    container_name: gyds-validatornode
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "30303:30303"      # P2P TCP
+      - "30303:30303/udp"  # P2P UDP
+      # RPC is localhost-only — do NOT expose 8545 publicly on a validator
+    volumes:
+      - validatornode-data:/app/data
+      - validatornode-keys:/app/keystore
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "7"
+
+volumes:
+  validatornode-data:
+  validatornode-keys:
