@@ -58,6 +58,7 @@ ufw allow   "${RPC_PORT}"/tcp    comment "GYDS RPC"
 ufw allow   "${WS_PORT}"/tcp     comment "GYDS WebSocket"
 ufw allow   "${P2P_PORT}"/tcp    comment "GYDS P2P"
 ufw allow   "${P2P_PORT}"/udp    comment "GYDS P2P UDP"
+ufw allow   51820/udp            comment "WireGuard VPN"
 for port in 23 2375 3306 5432 6379 27017; do
   ufw deny ${port}/tcp comment "Block common attack port" 2>/dev/null || true
 done

@@ -74,6 +74,9 @@ ufw allow   "${WS_PORT}"/tcp     comment "GYDS WebSocket"
 ufw allow   "${P2P_PORT}"/tcp    comment "GYDS P2P"
 ufw allow   "${P2P_PORT}"/udp    comment "GYDS P2P UDP"
 
+# WireGuard VPN (allow inbound handshakes from server)
+ufw allow   51820/udp            comment "WireGuard VPN"
+
 # Block common attack ports proactively
 ufw deny    23/tcp               comment "Telnet"
 ufw deny    2375/tcp             comment "Docker daemon (unencrypted)"

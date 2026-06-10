@@ -67,6 +67,9 @@ ufw allow   "${P2P_PORT}"/udp   comment "GYDS P2P UDP"
 # Explicitly block RPC from any external source
 ufw deny    "${RPC_PORT}"/tcp   comment "Validator RPC BLOCKED externally"
 
+# WireGuard VPN — operator access tunnel
+ufw allow   51820/udp            comment "WireGuard VPN"
+
 # Block common attack ports
 for port in 23 80 443 2375 2376 3306 5432 6379 27017 8080 8443; do
   ufw deny ${port}/tcp comment "Attack surface reduction" 2>/dev/null || true

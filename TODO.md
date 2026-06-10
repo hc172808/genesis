@@ -58,6 +58,8 @@ Wallets, websites, dApps, and block explorers all connect through it.
 - [x] Firewall hardening script (`setup-firewall.sh`) for all 4 nodes
 - [x] Sysctl network hardening (SYN flood, IP spoofing, ICMP redirect)
 - [x] SSH hardening (key-only, MaxAuthTries 3) on validator node
+- [x] WireGuard VPN client on all 4 nodes (`setup-wireguard.sh`)
+- [x] Validator RPC locked to VPN-only access (blocked from internet)
 - [x] Health-check cron (auto-restart on failure)
 - [ ] Load balancer config (HAProxy / Cloudflare) for high-availability
 - [ ] Multiple RPC node instances behind a single domain
