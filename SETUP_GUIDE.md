@@ -1,6 +1,7 @@
-# GYDS Chain — Complete Setup Guide
+# GYDS Chain — Complete Setup & Wallet Guide
 
 > **Network at a glance**
+>
 > | Field | Value |
 > |---|---|
 > | Network Name | GYDS Chain |
@@ -11,10 +12,27 @@
 > | RPC Port | 8545 |
 > | WebSocket Port | 8546 |
 > | P2P Port | 30303 |
+> | Boost P2P Port | 30306 |
+> | Boost Relay Port | 30307 |
 
 ---
 
-## Step 1 — Run Genesis Init (once, on first machine)
+## Do you need nginx + TLS (HTTPS)?
+
+**Short answer: No — not for your genesis/internal nodes.**
+
+| Situation | Need HTTPS? |
+|---|---|
+| Genesis node behind firewall, other nodes connect to it | ❌ Plain HTTP is fine |
+| Full node / litenode used only internally | ❌ Not needed |
+| RPC node exposed publicly so MetaMask users connect from the internet | ✅ Yes — add `DOMAIN=rpc.yourdomain.com` and TLS is handled automatically |
+| Trust Wallet on mobile connecting to your RPC | ✅ Yes — mobile wallets require HTTPS |
+
+All your setup scripts already include **nginx + Certbot** built in. To activate TLS, just set the `DOMAIN` variable before running the setup script — no separate nginx config needed.
+
+---
+
+## Step 1 — Run Genesis Init (once, on the genesis machine)
 
 ```bash
 bash genesis-init.sh \
@@ -25,248 +43,330 @@ bash genesis-init.sh \
 ```
 
 This creates `data/genesis/` containing:
-- `genesis.json` — the genesis block (share with every node operator)
-- `wallet-config.json` — copy-paste values for MetaMask / Trust Wallet
-- `network.env` — environment variables to source before running nodes
+- `genesis.json` — the genesis block **(copy this to every node operator)**
+- `wallet-config.json` — pre-filled values for MetaMask / Trust Wallet
+- `network.env` — source this before running node scripts
+
+> The genesis node stays behind your firewall. Only `genesis.json` needs to leave it.
 
 ---
 
 ## Step 2 — Add GYDS Chain to MetaMask
 
-### On Desktop (Browser Extension)
+### Desktop (Browser Extension)
 
-1. Open MetaMask and click the **network dropdown** at the top (e.g. "Ethereum Mainnet")
+1. Click the **network dropdown** at the top of MetaMask (shows current network)
 2. Click **Add network** → **Add a network manually**
-3. Fill in exactly:
+3. Fill in:
 
    | Field | Value |
    |---|---|
-   | Network Name | GYDS Chain |
+   | Network Name | `GYDS Chain` |
    | New RPC URL | `http://YOUR_RPC_NODE_IP:8545` |
    | Chain ID | `13370` |
    | Currency Symbol | `GYDS` |
-   | Block Explorer URL | *(leave blank for now, or add your explorer URL later)* |
+   | Block Explorer URL | *(leave blank for now)* |
 
-4. Click **Save**
-5. MetaMask will switch to GYDS Chain automatically
+4. Click **Save** — MetaMask switches to GYDS Chain automatically
 
-### On Mobile (MetaMask App)
+### Mobile (MetaMask App)
 
-1. Tap the **hamburger menu** (☰) → **Settings** → **Networks**
-2. Tap **Add Network**
-3. Enter the same values as above
-4. Tap **Add**
+1. Tap **☰** (menu) → **Settings** → **Networks** → **Add Network**
+2. Enter the same values as above
+3. Tap **Add**
 
-### Verify it works
-- Your balance should show `0 GYDS`
-- The network badge at the top should say **GYDS Chain**
-- Send a test transaction to yourself — if the tx goes through, the RPC is working
+> **Tip:** Your balance shows `0 GYDS` until the chain is producing blocks and your address has been funded.
 
 ---
 
 ## Step 3 — Add GYDS Chain to Trust Wallet
 
-### On Mobile
+Trust Wallet on mobile **requires HTTPS** for RPC. Your internal nodes use HTTP, so you have two options:
 
-1. Open Trust Wallet → tap **Settings** (bottom right)
+**Option A — Use a public RPC node with TLS** (recommended for Trust Wallet)
+Deploy your RPC/fullnode with a domain:
+```bash
+DOMAIN=rpc.yourdomain.com sudo bash setup-fullnode-server.sh
+```
+Then use `https://rpc.yourdomain.com` as the RPC URL in Trust Wallet.
+
+**Option B — Use your phone on the same network**
+If your phone is on the same LAN/VPN as the node, plain `http://` may work.
+
+### Trust Wallet Steps
+
+1. Open Trust Wallet → **Settings** (bottom right cog)
 2. Tap **Networks** → **Add Custom Network**
 3. Fill in:
 
    | Field | Value |
    |---|---|
-   | Name | GYDS Chain |
-   | Short Name | GYDS |
-   | RPC URL | `http://YOUR_RPC_NODE_IP:8545` |
+   | Name | `GYDS Chain` |
+   | Short Name | `GYDS` |
+   | RPC URL | `https://rpc.yourdomain.com` *(or http:// on same LAN)* |
    | Chain ID | `13370` |
    | Symbol | `GYDS` |
    | Decimals | `18` |
    | Explorer | *(optional — add later)* |
 
-4. Tap **Done** / **Save**
-
-> **Note:** Trust Wallet requires the RPC URL to be publicly reachable (not `localhost`). Your RPC node must have port `8545` open and accessible from the internet or your phone's network.
+4. Tap **Done / Save**
 
 ---
 
 ## Step 4 — Node Setup
 
-After distributing `genesis.json` to each machine, every operator runs:
+> All setup scripts run on **Ubuntu 20.04/22.04/24.04** and most also support Debian, CentOS/RHEL/Rocky/AlmaLinux, Amazon Linux, and Fedora.
+> Every script must be run as **root** (`sudo bash ...`).
 
-```bash
-# Always source network vars first
-source data/genesis/network.env
-```
-
-Then pick the node type below.
+Distribute `genesis.json` to each machine first, then pick the node type below.
 
 ---
 
-### Lite Node
-Syncs block headers only — lightweight, fast to start. Good for wallets and light verification.
-
-```bash
-# Clone and run
-git clone https://github.com/hc172808/litenode
-cd litenode
-sudo bash setup-litenode-server.sh \
-  --datadir /data/gyds-genesis \
-  --genesis /path/to/genesis.json \
-  --chain-id 13370
-```
-
-**Ports used:** P2P `30303`
-**Does NOT expose RPC** — not suitable as a wallet endpoint on its own.
-
----
-
-### Full Node
-Downloads and verifies the entire chain. Required for indexers, explorers, and archival.
-
-```bash
-git clone https://github.com/hc172808/fullnode
-cd fullnode
-sudo bash setup-fullnode-server.sh \
-  --datadir /data/gyds-genesis \
-  --genesis /path/to/genesis.json \
-  --chain-id 13370
-```
-
-**Ports used:** P2P `30303`
-**Tip:** Let this fully sync before starting an RPC node pointed at it.
-
----
-
-### RPC Node
-Exposes the JSON-RPC and WebSocket API that wallets (MetaMask, Trust Wallet) connect to.
-
-```bash
-git clone https://github.com/hc172808/rpcnode
-cd rpcnode
-sudo bash setup-rpcnode-server.sh \
-  --datadir /data/gyds-genesis \
-  --genesis /path/to/genesis.json \
-  --chain-id 13370 \
-  --rpc-port 8545 \
-  --ws-port  8546
-```
-
-**Ports to open on your firewall:**
-```bash
-sudo ufw allow 8545/tcp   # HTTP RPC
-sudo ufw allow 8546/tcp   # WebSocket
-sudo ufw allow 30303/tcp  # P2P
-sudo ufw allow 30303/udp  # P2P discovery
-```
-
-**This is the URL you put in MetaMask and Trust Wallet.**
-
----
-
-### Validator Node
-Produces and signs blocks. Requires a funded keystore address.
-
-```bash
-git clone https://github.com/hc172808/validatornode  # update URL if different
-cd validatornode
-sudo bash setup-validatornode-server.sh \
-  --datadir    /data/gyds-genesis \
-  --genesis    /path/to/genesis.json \
-  --chain-id   13370 \
-  --keystore   /data/gyds-genesis/keystore/YOUR_KEY.json \
-  --unlock     0xYOUR_VALIDATOR_ADDRESS \
-  --password   /path/to/password.txt
-```
-
-**Ports to open:**
-```bash
-sudo ufw allow 30303/tcp
-sudo ufw allow 30303/udp
-```
-
-> **Security:** Never expose validator RPC to the public internet. Keep port 8545 firewalled on validator machines.
-
----
-
-### Boost Node
-Accelerates peer discovery and block propagation — acts as a relay/seed node.
+### Boost Node — Start this first
+Handles peer discovery and block propagation. Other nodes point their `GYDS_BOOTSTRAP_NODES` here.
 
 ```bash
 git clone https://github.com/hc172808/boostnode
 cd boostnode
-sudo bash setup-boostnode-server.sh \
-  --datadir  /data/gyds-genesis \
-  --genesis  /path/to/genesis.json \
-  --chain-id 13370
+sudo bash setup-boostnode-server.sh
 ```
 
-**Ports to open:**
+**Override ports with env vars (no CLI flags on this script):**
 ```bash
-sudo ufw allow 30303/tcp
-sudo ufw allow 30303/udp
+sudo GYDS_P2P_PORT=30306 GYDS_BOOST_PORT=30307 bash setup-boostnode-server.sh
+```
+
+**Ports opened automatically:**
+
+| Port | Protocol | Purpose |
+|---|---|---|
+| 30306 | TCP + UDP | P2P peer networking |
+| 30307 | TCP + UDP | Boost relay |
+| 8545 | TCP | RPC — **localhost only**, not public |
+
+**After setup, note your boost node's address:**
+```
+GYDS_BOOTSTRAP_NODES=tcp://YOUR_BOOST_NODE_IP:30306
+```
+All other nodes need this value in their `.env`.
+
+**Management commands:**
+```bash
+cd /opt/gyds-boostnode && docker compose logs -f      # live logs
+docker compose restart                                 # restart
+systemctl enable --now gyds-boostnode                 # switch to native (no Docker)
+journalctl -fu gyds-boostnode                         # native logs
 ```
 
 ---
 
-## Step 5 — Verify the Network is Live
+### Lite Node
+Syncs block headers only — lightweight, fast to start. Good as an entry-point node or wallet endpoint on your LAN.
 
-Once your RPC node is running, run these quick checks from any machine:
+```bash
+git clone https://github.com/hc172808/litenode
+cd litenode
+sudo bash setup-litenode-server.sh
+```
+
+**To enable TLS / HTTPS (needed for Trust Wallet from internet):**
+```bash
+sudo DOMAIN=rpc.yourdomain.com bash setup-litenode-server.sh
+```
+
+**To set bootstrap peers (point at your boost node):**
+```bash
+sudo GYDS_BOOTSTRAP_NODES="tcp://YOUR_BOOST_NODE_IP:30306" bash setup-litenode-server.sh
+```
+
+**Ports opened automatically:**
+
+| Port | Protocol | Purpose |
+|---|---|---|
+| 8545 | TCP | JSON-RPC HTTP — use this in MetaMask |
+| 8546 | TCP | WebSocket |
+| 30303 | TCP + UDP | P2P networking |
+| 80 | TCP | Nginx reverse proxy → 8545 |
+| 443 | TCP | HTTPS *(only when DOMAIN is set)* |
+
+**Management commands (installed globally):**
+```bash
+gyds-health           # check node status, block height, disk
+sudo gyds-update      # pull latest code and rebuild
+cd /opt/gyds-litenode && docker compose logs -f    # live logs
+docker compose restart                              # restart
+```
+
+---
+
+### Full Node
+Downloads and verifies the entire chain. Recommended as your main RPC endpoint and for any serious use.
+
+```bash
+git clone https://github.com/hc172808/fullnode
+cd fullnode
+sudo bash setup-fullnode-server.sh
+```
+
+**Common options:**
+```bash
+# With a domain for HTTPS (required for Trust Wallet)
+sudo bash setup-fullnode-server.sh --domain rpc.yourdomain.com
+
+# With bootstrap peers
+sudo bash setup-fullnode-server.sh \
+  --bootstrap-nodes tcp://YOUR_BOOST_NODE_IP:30306
+
+# Custom ports
+sudo bash setup-fullnode-server.sh \
+  --rpc-port 8545 --ws-port 8546 --p2p-port 30303
+
+# Non-Docker (runs as native systemd service)
+sudo bash setup-fullnode-server.sh --no-docker
+
+# Restrict RPC to specific IPs only
+sudo bash setup-fullnode-server.sh --allow-ip 192.168.1.50
+
+# All options
+sudo bash setup-fullnode-server.sh --help
+```
+
+**Update an existing install:**
+```bash
+sudo bash /opt/gyds-fullnode/setup-fullnode-server.sh --update
+```
+
+**Uninstall (preserves chain data):**
+```bash
+sudo bash /opt/gyds-fullnode/setup-fullnode-server.sh --uninstall
+```
+
+**Ports opened automatically:**
+
+| Port | Protocol | Purpose |
+|---|---|---|
+| 8545 | TCP | JSON-RPC HTTP — use this in MetaMask |
+| 8546 | TCP | WebSocket |
+| 30303 | TCP + UDP | P2P networking |
+| 80 | TCP | Nginx reverse proxy → 8545 |
+| 443 | TCP | HTTPS *(only when --domain is used)* |
+
+**Management commands:**
+```bash
+# Docker mode (default)
+cd /opt/gyds-fullnode
+docker compose ps                    # status
+docker compose logs -f               # live logs
+docker compose restart               # restart
+
+# Native systemd mode (when --no-docker was used)
+systemctl status gyds-fullnode
+journalctl -u gyds-fullnode -f
+systemctl restart gyds-fullnode
+
+# Health check (runs automatically every 5 min via cron)
+/usr/local/bin/gyds-fullnode-health
+cat /var/lib/gyds-fullnode/logs/health.log
+```
+
+---
+
+## Step 5 — Recommended Node Startup Order
+
+```
+1. Genesis node  →  run genesis-init.sh (stays behind firewall)
+2. Boost node    →  first public node, handles peer discovery
+3. Full node(s)  →  sync chain, expose RPC endpoint
+4. Lite node(s)  →  lightweight wallet/query endpoints
+```
+
+Once your full node is live, point MetaMask at it:
+- **RPC URL:** `http://YOUR_FULLNODE_IP:8545` (or `https://` if you set `--domain`)
+
+---
+
+## Step 6 — Verify the Chain is Live
+
+Run these from any machine to confirm your RPC node is working:
 
 ```bash
 RPC="http://YOUR_RPC_NODE_IP:8545"
 
-# Check chain ID (should return 0x343a)
+# Should return "0x343a" (Chain ID 13370 in hex)
 curl -s -X POST $RPC \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}'
 
-# Check latest block number
+# Should return "0x0" at genesis, increases as blocks are produced
 curl -s -X POST $RPC \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}'
 
-# Check peer count (should be > 0 when other nodes are connected)
+# Should be > 0 once other nodes connect
 curl -s -X POST $RPC \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"net_peerCount","params":[],"id":1}'
 ```
 
 Expected responses:
-- `eth_chainId` → `"result": "0x343a"`
-- `eth_blockNumber` → `"result": "0x0"` (block 0 at start, increments as validators produce blocks)
-- `net_peerCount` → `"result": "0x2"` or higher
-
----
-
-## Troubleshooting
-
-| Problem | Likely cause | Fix |
-|---|---|---|
-| MetaMask shows "Could not fetch chain ID" | RPC not reachable | Check firewall, ensure port 8545 is open and node is running |
-| MetaMask shows wrong network | Chain ID mismatch | Double-check you entered `13370`, not `1337` or other |
-| Trust Wallet can't connect | HTTP vs HTTPS | Some builds require `https://` — put an nginx TLS proxy in front of port 8545 |
-| No peers connecting | P2P port blocked | Open port 30303 TCP+UDP on all nodes |
-| Validator not producing blocks | Key not unlocked or not in genesis validators list | Confirm address is in genesis.json `validators` array |
-| Balance shows 0 after genesis | Wallet address not in alloc | Re-run genesis init with your address in the alloc section |
+| RPC Method | Expected Result |
+|---|---|
+| `eth_chainId` | `"result": "0x343a"` |
+| `eth_blockNumber` | `"result": "0x0"` at start, increases over time |
+| `net_peerCount` | `"result": "0x1"` or higher |
 
 ---
 
 ## Firewall Quick Reference
 
 ```bash
-# RPC node (public-facing)
-sudo ufw allow 8545/tcp    # MetaMask / Trust Wallet connect here
+# Full node or litenode (public RPC)
+sudo ufw allow 8545/tcp    # JSON-RPC — MetaMask / Trust Wallet
 sudo ufw allow 8546/tcp    # WebSocket
 sudo ufw allow 30303/tcp   # P2P
-sudo ufw allow 30303/udp
+sudo ufw allow 30303/udp   # P2P discovery
 
-# Validator / Full / Lite / Boost nodes (no public RPC)
-sudo ufw allow 30303/tcp
-sudo ufw allow 30303/udp
-sudo ufw deny  8545/tcp    # keep RPC private on non-RPC nodes
+# Boost node (no public RPC)
+sudo ufw allow 30306/tcp
+sudo ufw allow 30306/udp
+sudo ufw allow 30307/tcp
+sudo ufw allow 30307/udp
+
+# Genesis node (stays behind firewall — open nothing publicly)
+# Only open port 30303 if you want it to peer with other nodes directly
+
+# View open ports
+sudo ufw status numbered
 ```
 
 ---
 
-## Share GitHub Repos
+## Troubleshooting
 
-Send your GitHub links for `litenode`, `fullnode`, `rpcnode`, `validatornode`, and `boostnode` and the node-specific sections above will be updated with the exact flags and config your scripts expect.
+| Problem | Likely Cause | Fix |
+|---|---|---|
+| MetaMask: "Could not fetch chain ID" | RPC not reachable | Check `ufw status`, confirm node is running: `docker compose ps` |
+| MetaMask shows wrong network | Chain ID typed wrong | Confirm you entered `13370` (not `1337` or `13370` with extra zeros) |
+| Trust Wallet can't connect | HTTPS required | Set `DOMAIN=` and re-run setup, or use `--domain` flag on fullnode |
+| No peers connecting | P2P port blocked | Open 30303 TCP+UDP; ensure boost node is running and its IP is in `GYDS_BOOTSTRAP_NODES` |
+| Balance shows 0 after genesis | Address not in alloc | Re-run genesis init and add your address to the alloc section |
+| Container keeps restarting | Build or config error | Run `docker compose logs -f` in the node's app directory |
+| Boost node RPC not reachable | Expected — by design | Boost node RPC is localhost-only; use fullnode or litenode for wallet RPC |
+
+---
+
+## `.env` Variables Reference
+
+These can be set before running any setup script or edited in `APP_DIR/.env` afterwards:
+
+| Variable | Default | Used by |
+|---|---|---|
+| `GYDS_CHAIN_ID` | `13370` | All nodes |
+| `GYDS_RPC_PORT` | `8545` | Litenode, Fullnode |
+| `GYDS_WS_PORT` | `8546` | Fullnode |
+| `GYDS_P2P_PORT` | `30303` (lite/full), `30306` (boost) | All nodes |
+| `GYDS_BOOST_PORT` | `30307` | Boostnode only |
+| `GYDS_DATA_DIR` | varies per node | All nodes |
+| `GYDS_LOG_LEVEL` | `info` | All nodes (`trace`\|`debug`\|`info`\|`warn`\|`error`) |
+| `GYDS_BOOTSTRAP_NODES` | *(empty)* | All nodes — set to `tcp://BOOST_IP:30306` |
+| `DOMAIN` | *(empty)* | Litenode — set to enable auto-TLS via Certbot |
