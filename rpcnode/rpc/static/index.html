@@ -563,6 +563,28 @@
     </div>
   </div>
 
+  <!-- Transaction / Address Search -->
+  <div style="margin-bottom:24px">
+    <div class="section-header" style="margin-bottom:12px">
+      <span class="section-title">🔍 Search</span>
+      <span style="font-size:12px;color:var(--muted)">Transaction hash or wallet address</span>
+    </div>
+    <div class="card" style="padding:20px">
+      <div style="display:flex;gap:10px;margin-bottom:16px">
+        <input id="searchInput" type="text"
+          placeholder="0x… transaction hash (66 chars) or wallet address (42 chars)"
+          style="flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;transition:border-color .2s"
+          onfocus="this.style.borderColor='var(--accent)'"
+          onblur="this.style.borderColor='var(--border)'"
+          onkeydown="if(event.key==='Enter')doSearch()" />
+        <button onclick="doSearch()" style="background:linear-gradient(135deg,var(--accent),#059669);border:none;border-radius:8px;padding:10px 22px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          Search
+        </button>
+      </div>
+      <div id="searchResult"></div>
+    </div>
+  </div>
+
   <!-- Recent Blocks -->
   <div class="section-header">
     <span class="section-title">Recent Blocks</span>
@@ -827,6 +849,158 @@
     el.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+  }
+
+  // ── Search ─────────────────────────────────────────────────
+  async function doSearch() {
+    const raw = document.getElementById('searchInput').value.trim();
+    const out = document.getElementById('searchResult');
+    if (!raw) return;
+
+    out.innerHTML = `<div style="color:var(--muted);font-size:13px;padding:8px 0"><span class="spinner"></span> Searching…</div>`;
+
+    const clean = raw.startsWith('0x') ? raw : '0x' + raw;
+
+    if (clean.length === 66) {
+      await searchTx(clean, out);
+    } else if (clean.length === 42) {
+      await searchAccount(clean, out);
+    } else {
+      out.innerHTML = renderSearchError('Input must be a 66-char transaction hash or 42-char wallet address (with or without 0x prefix).');
+    }
+  }
+
+  async function searchTx(hash, out) {
+    try {
+      const res = await fetch('/api/transactions/' + hash);
+      if (!res.ok) throw new Error('not found');
+      const data = await res.json();
+      const tx = data.transaction || data;
+      if (!tx || !tx.hash) throw new Error('not found');
+      out.innerHTML = renderTxCard(tx);
+    } catch {
+      // fallback to JSON-RPC
+      try {
+        const rpcRes = await rpc('eth_getTransactionByHash', [hash]);
+        if (rpcRes.result) {
+          out.innerHTML = renderTxCard(normalizeRpcTx(rpcRes.result));
+        } else {
+          out.innerHTML = renderSearchError('Transaction not found: ' + hash);
+        }
+      } catch {
+        out.innerHTML = renderSearchError('Transaction not found: ' + hash);
+      }
+    }
+  }
+
+  async function searchAccount(address, out) {
+    try {
+      const [acctRes, txRes, balRpc] = await Promise.all([
+        fetch('/api/accounts/' + address).then(r => r.json()).catch(() => null),
+        fetch('/api/transactions?limit=100').then(r => r.json()).catch(() => ({ transactions: [] })),
+        rpc('eth_getBalance', [address, 'latest'])
+      ]);
+
+      const balWei = BigInt(balRpc.result || '0x0');
+      const balEth = (Number(balWei) / 1e18).toFixed(6);
+
+      const nonce = acctRes?.nonce ?? acctRes?.tx_count ?? 0;
+
+      const all  = txRes.transactions || [];
+      const addr = address.toLowerCase();
+      const mine = all.filter(tx =>
+        (tx.from||'').toLowerCase() === addr || (tx.to||'').toLowerCase() === addr
+      );
+
+      out.innerHTML = renderAccountCard(address, balEth, nonce, mine);
+    } catch(e) {
+      out.innerHTML = renderSearchError('Could not load account: ' + e.message);
+    }
+  }
+
+  function normalizeRpcTx(t) {
+    const weiVal = BigInt(t.value || '0x0');
+    return {
+      hash:      t.hash,
+      from:      t.from,
+      to:        t.to,
+      value:     '0x' + weiVal.toString(16),
+      gas:       parseInt(t.gas, 16),
+      gasPrice:  parseInt(t.gasPrice, 16),
+      nonce:     parseInt(t.nonce, 16),
+      blockNumber: t.blockNumber ? parseInt(t.blockNumber, 16) : null,
+      status:    'confirmed'
+    };
+  }
+
+  function renderTxCard(tx) {
+    const weiVal  = BigInt(tx.value || '0x0');
+    const ethVal  = (Number(weiVal) / 1e18).toFixed(6);
+    const gasGwei = tx.gasPrice ? (Number(BigInt(tx.gasPrice || '0')) / 1e9).toFixed(2) + ' Gwei' : '1 Gwei';
+    const block   = tx.blockNumber || tx.block_num || '—';
+    const status  = tx.status || 'confirmed';
+    const statusColor = status === 'pending' ? 'var(--warn)' : 'var(--accent)';
+    return `
+      <div style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:18px;margin-top:4px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <span style="font-size:13px;font-weight:700;color:var(--accent2)">Transaction</span>
+          <span style="font-size:12px;font-weight:600;color:${statusColor};background:rgba(0,0,0,.2);border-radius:20px;padding:3px 10px">${status}</span>
+        </div>
+        ${searchRow('Hash',   `<span style="font-family:var(--mono);font-size:12px;word-break:break-all">${tx.hash}</span>`)}
+        ${searchRow('From',   `<span style="font-family:var(--mono);font-size:12px">${tx.from||'—'}</span><button class="copy-btn" onclick="navigator.clipboard.writeText('${tx.from||''}').then(()=>toast('Copied!'))">⧉</button>`)}
+        ${searchRow('To',     `<span style="font-family:var(--mono);font-size:12px">${tx.to||'—'}</span><button class="copy-btn" onclick="navigator.clipboard.writeText('${tx.to||''}').then(()=>toast('Copied!'))">⧉</button>`)}
+        ${searchRow('Value',  `<strong style="color:var(--accent)">${ethVal} GYDS</strong>`)}
+        ${searchRow('Gas',    `${(tx.gas||tx.gasLimit||21000).toLocaleString()} units @ ${gasGwei}`)}
+        ${searchRow('Block',  block !== '—' ? `<a onclick="document.getElementById('searchInput').value='${block}'" style="color:var(--accent2);cursor:pointer">#${block}</a>` : '—')}
+      </div>`;
+  }
+
+  function renderAccountCard(address, balEth, nonce, txs) {
+    const txRows = txs.length === 0
+      ? `<div style="text-align:center;color:var(--muted);padding:20px;font-size:13px">No transactions found for this address</div>`
+      : txs.map(tx => {
+          const isOut = (tx.from||'').toLowerCase() === address.toLowerCase();
+          const other = isOut ? tx.to : tx.from;
+          const shortOther = other ? other.slice(0,10)+'…'+other.slice(-6) : '—';
+          const weiVal = BigInt(tx.value||'0x0');
+          const ethVal = (Number(weiVal)/1e18).toFixed(4);
+          const shortHash = tx.hash ? tx.hash.slice(0,12)+'…'+tx.hash.slice(-6) : '—';
+          return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+            <div style="width:30px;height:30px;border-radius:50%;background:${isOut?'rgba(239,68,68,.12)':'rgba(16,185,129,.12)'};display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">${isOut?'↑':'↓'}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-family:var(--mono);font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${shortHash}</div>
+              <div style="font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${isOut?'To: ':'From: '}${shortOther}</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-size:13px;font-weight:700;color:${isOut?'var(--danger)':'var(--accent)'}">${isOut?'-':'+'}${ethVal}</div>
+              <div style="font-size:11px;color:var(--muted)">GYDS</div>
+            </div>
+          </div>`;
+        }).join('');
+    return `
+      <div style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:18px;margin-top:4px">
+        <div style="margin-bottom:14px">
+          <span style="font-size:13px;font-weight:700;color:var(--accent2)">Wallet Account</span>
+        </div>
+        ${searchRow('Address', `<span style="font-family:var(--mono);font-size:12px;word-break:break-all">${address}</span><button class="copy-btn" onclick="navigator.clipboard.writeText('${address}').then(()=>toast('Copied!'))">⧉</button>`)}
+        ${searchRow('Balance', `<strong style="color:var(--accent);font-size:18px">${parseFloat(balEth).toLocaleString()} GYDS</strong>`)}
+        ${searchRow('Tx Count', nonce + ' transactions sent')}
+        <div style="margin-top:14px;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">
+          Transactions (${txs.length} found)
+        </div>
+        <div style="max-height:280px;overflow-y:auto">${txRows}</div>
+      </div>`;
+  }
+
+  function searchRow(label, valueHtml) {
+    return `<div style="display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+      <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);min-width:80px;padding-top:1px">${label}</span>
+      <span style="font-size:13px;color:var(--text);flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">${valueHtml}</span>
+    </div>`;
+  }
+
+  function renderSearchError(msg) {
+    return `<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--danger);margin-top:4px">❌ ${msg}</div>`;
   }
 </script>
 </body>

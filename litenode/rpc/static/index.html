@@ -286,6 +286,7 @@
         <button class="tab"         data-tab="receive" onclick="switchTab('receive',this)">Receive</button>
         <button class="tab"         data-tab="history" onclick="switchTab('history',this)">History</button>
         <button class="tab"         data-tab="keys"    onclick="switchTab('keys',this)">Keys</button>
+        <button class="tab"         data-tab="search"  onclick="switchTab('search',this)">🔍 Search</button>
       </div>
 
       <div class="tab-body">
@@ -356,6 +357,21 @@
           <div class="divider">danger zone</div>
           <button class="btn btn-danger btn-full" onclick="disconnectWallet()">✕ Disconnect Wallet</button>
           <p class="text-muted" style="font-size:11px;margin-top:8px;text-align:center">This only removes the wallet from memory. Your funds remain on-chain.</p>
+        </div>
+
+        <!-- ── SEARCH ── -->
+        <div id="pane-search" class="tab-pane">
+          <div class="field">
+            <label>Transaction Hash or Wallet Address</label>
+            <div style="display:flex;gap:8px">
+              <input type="text" id="walletSearchInput"
+                placeholder="0x… hash (66 chars) or address (42 chars)"
+                style="font-family:var(--mono);font-size:12px"
+                onkeydown="if(event.key==='Enter')doWalletSearch()" />
+              <button class="btn btn-primary btn-sm" onclick="doWalletSearch()">Search</button>
+            </div>
+          </div>
+          <div id="walletSearchResult"></div>
         </div>
 
       </div><!-- /tab-body -->
@@ -673,6 +689,104 @@ function toast(msg) {
   el.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ── Search (wallet tab) ───────────────────────────────────────────────────────
+async function doWalletSearch() {
+  const raw = document.getElementById('walletSearchInput').value.trim();
+  const out = document.getElementById('walletSearchResult');
+  if (!raw) return;
+  out.innerHTML = `<div class="text-muted" style="padding:10px 0"><span class="spinner"></span> Searching…</div>`;
+  const clean = raw.startsWith('0x') ? raw : '0x' + raw;
+  if (clean.length === 66)      await searchTxResult(clean, out);
+  else if (clean.length === 42) await searchAcctResult(clean, out);
+  else out.innerHTML = srchErr('Enter a 66-char transaction hash or 42-char wallet address.');
+}
+
+async function searchTxResult(hash, out) {
+  try {
+    const res  = await fetch('/api/transactions/' + hash);
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    const tx   = data.transaction || data;
+    if (!tx?.hash) throw new Error();
+    out.innerHTML = srchTxCard(tx);
+  } catch {
+    try {
+      const r = await provider.getTransaction(hash);
+      if (r) out.innerHTML = srchTxCard({ hash: r.hash, from: r.from, to: r.to, value: '0x'+r.value.toString(16), gas: r.gasLimit?.toNumber(), gasPrice: r.gasPrice?.toNumber(), nonce: r.nonce, blockNumber: r.blockNumber, status: 'confirmed' });
+      else out.innerHTML = srchErr('Transaction not found.');
+    } catch { out.innerHTML = srchErr('Transaction not found.'); }
+  }
+}
+
+async function searchAcctResult(address, out) {
+  try {
+    const [acctRes, txRes, bal] = await Promise.all([
+      fetch('/api/accounts/' + address).then(r=>r.json()).catch(()=>({})),
+      fetch('/api/transactions?limit=100').then(r=>r.json()).catch(()=>({transactions:[]})),
+      provider.getBalance(address)
+    ]);
+    const balFmt = parseFloat(ethers.utils.formatEther(bal)).toLocaleString(undefined,{maximumFractionDigits:6});
+    const nonce  = acctRes?.nonce ?? acctRes?.tx_count ?? 0;
+    const addr   = address.toLowerCase();
+    const mine   = (txRes.transactions||[]).filter(tx=>(tx.from||'').toLowerCase()===addr||(tx.to||'').toLowerCase()===addr);
+    out.innerHTML = srchAcctCard(address, balFmt, nonce, mine);
+  } catch(e) { out.innerHTML = srchErr('Could not load account: ' + e.message); }
+}
+
+function srchTxCard(tx) {
+  const wei  = BigInt(tx.value||'0x0');
+  const eth  = (Number(wei)/1e18).toFixed(6);
+  const blk  = tx.blockNumber||tx.block_num||'—';
+  const st   = tx.status||'confirmed';
+  const sc   = st==='pending'?'var(--warn)':'var(--accent)';
+  return `<div class="card" style="margin-top:12px;padding:16px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+      <span style="font-size:12px;font-weight:700;color:var(--accent2)">Transaction</span>
+      <span style="font-size:11px;font-weight:600;color:${sc};border:1px solid ${sc};border-radius:20px;padding:2px 10px">${st}</span>
+    </div>
+    ${sr('Hash',  `<span style="font-family:var(--mono);font-size:11px;word-break:break-all">${tx.hash}</span>`)}
+    ${sr('From',  `<span style="font-family:var(--mono);font-size:11px">${tx.from||'—'}</span>`)}
+    ${sr('To',    `<span style="font-family:var(--mono);font-size:11px">${tx.to||'—'}</span>`)}
+    ${sr('Value', `<strong style="color:var(--accent)">${eth} GYDS</strong>`)}
+    ${sr('Gas',   String((tx.gas||tx.gasLimit||21000).toLocaleString()) + ' units')}
+    ${sr('Block', blk !== '—' ? '#'+blk : '—')}
+  </div>`;
+}
+
+function srchAcctCard(address, balFmt, nonce, txs) {
+  const addr = address.toLowerCase();
+  const rows = txs.length ? txs.map(tx=>{
+    const isOut=(tx.from||'').toLowerCase()===addr;
+    const other=(isOut?tx.to:tx.from)||'—';
+    const shortO=other.length>14?other.slice(0,8)+'…'+other.slice(-5):other;
+    const eth=(Number(BigInt(tx.value||'0x0'))/1e18).toFixed(4);
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+      <span style="font-size:16px">${isOut?'↑':'↓'}</span>
+      <div style="flex:1;min-width:0;font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${isOut?'To ':'From '}${shortO}</div>
+      <span style="font-size:12px;font-weight:700;color:${isOut?'var(--danger)':'var(--accent)'}">${isOut?'-':'+'}${eth} GYDS</span>
+    </div>`;
+  }).join('') : `<div class="text-center text-muted" style="padding:16px;font-size:12px">No transactions found</div>`;
+  return `<div class="card" style="margin-top:12px;padding:16px">
+    <div style="margin-bottom:12px"><span style="font-size:12px;font-weight:700;color:var(--accent2)">Account</span></div>
+    ${sr('Address', `<span style="font-family:var(--mono);font-size:11px;word-break:break-all">${address}</span>`)}
+    ${sr('Balance', `<strong style="color:var(--accent);font-size:16px">${balFmt} GYDS</strong>`)}
+    ${sr('Tx Sent', String(nonce))}
+    <div style="margin-top:12px;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Transactions (${txs.length})</div>
+    <div style="max-height:240px;overflow-y:auto">${rows}</div>
+  </div>`;
+}
+
+function sr(label, html) {
+  return `<div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+    <span style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--muted);min-width:70px">${label}</span>
+    <span style="font-size:12px;color:var(--text);flex:1;display:flex;align-items:center;gap:4px;flex-wrap:wrap">${html}</span>
+  </div>`;
+}
+
+function srchErr(msg) {
+  return `<div class="alert alert-danger" style="margin-top:10px">❌ ${msg}</div>`;
 }
 </script>
 </body>
