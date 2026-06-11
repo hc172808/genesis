@@ -1,0 +1,3 @@
+- [GYDS Chain project overview](gyds-chain.md) — Chain ID 13370, Symbol GYDS, 4 node repos, bank-connect-hub integration
+- [Push workflow](gyds-push.md) — push-all.sh for 4 GYDS repos; push-bank.sh for bank-connect-hub; both clone to /tmp/gyds-push/
+- [Go build restriction](gyds-go-build.md) — Replit firewall blocks go mod download for local modules; build verification must be done in real environment
