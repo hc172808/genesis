@@ -1,0 +1,2 @@
+- [Twilio SMS + SMTP email](notifications.md) — both handled by build-server.mjs; env vars required; fire-and-forget from frontend
+- [New feature pages](feature-pages.md) — BudgetPlanner, SavingsGoals, Beneficiaries, VirtualCards all use localStorage (keyed by user.id); no DB schema changes needed
