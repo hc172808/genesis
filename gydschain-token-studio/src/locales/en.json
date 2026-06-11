@@ -1,0 +1,77 @@
+{
+  "nav": {
+    "home": "Home",
+    "create": "Token Creator",
+    "defi": "DeFi",
+    "createLiquidity": "Create Liquidity",
+    "swap": "Swap Token",
+    "removeLiquidity": "Remove Liquidity",
+    "burn": "Burn Token",
+    "burnAndEarn": "Burn & Earn",
+    "dashboard": "Dashboard",
+    "gallery": "Gallery",
+    "analytics": "Analytics",
+    "leaderboard": "Leaderboard",
+    "hosting": "Hosting",
+    "profile": "Profile",
+    "staking": "Staking",
+    "governance": "Governance",
+    "launchpad": "Launchpad",
+    "notifications": "Notifications"
+  },
+  "common": {
+    "connect": "Connect Wallet",
+    "connecting": "Connecting...",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "language": "Language",
+    "theme": "Theme",
+    "dark": "Dark",
+    "light": "Light",
+    "system": "System"
+  },
+  "staking": {
+    "title": "Stake & Earn",
+    "subtitle": "Stake GYDS or LP tokens to earn rewards",
+    "stake": "Stake",
+    "unstake": "Unstake",
+    "claim": "Claim Rewards",
+    "apr": "APR",
+    "totalStaked": "Total Staked",
+    "yourStake": "Your Stake",
+    "pendingRewards": "Pending Rewards",
+    "noPools": "No staking pools available yet"
+  },
+  "governance": {
+    "title": "Governance",
+    "subtitle": "Vote on proposals shaping the platform",
+    "newProposal": "New Proposal",
+    "for": "For",
+    "against": "Against",
+    "abstain": "Abstain",
+    "active": "Active",
+    "ended": "Ended",
+    "noProposals": "No proposals yet"
+  },
+  "launchpad": {
+    "title": "Token Launchpad",
+    "subtitle": "Fair-launch presales with vesting",
+    "create": "Create Presale",
+    "contribute": "Contribute",
+    "claim": "Claim Tokens",
+    "refund": "Get Refund",
+    "softCap": "Soft Cap",
+    "hardCap": "Hard Cap",
+    "raised": "Raised",
+    "ends": "Ends in"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "You're all caught up",
+    "markAllRead": "Mark all read"
+  }
+}

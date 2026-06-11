@@ -20,7 +20,9 @@ description: Core facts about the GYDS Chain project — chain config, repo layo
 - validatornode — private
 - fullnode — private
 - litenode — private
-- bank-connect-hub — separate repo, NETLIFE CASH banking app
+- bank-connect-hub — NETLIFE CASH banking app
+- gydschain-token-studio — token creation/DEX/staking studio (had wrong chain IDs 12345/12346, now fixed to 13370)
+- your-digital-wallet — crypto wallet PWA (already had Chain ID 13370)
 
 ## Key files
 - push-all.sh — pushes 4 node repos (clones to /tmp/gyds-push/)

@@ -1,0 +1,158 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    --background: 230 25% 7%;
+    --foreground: 220 20% 95%;
+
+    --card: 230 25% 10%;
+    --card-foreground: 220 20% 95%;
+
+    --popover: 230 25% 10%;
+    --popover-foreground: 220 20% 95%;
+
+    --primary: 220 90% 56%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 270 60% 55%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 230 20% 15%;
+    --muted-foreground: 220 15% 55%;
+
+    --accent: 270 60% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 230 20% 18%;
+    --input: 230 20% 18%;
+    --ring: 220 90% 56%;
+
+    --radius: 0.75rem;
+
+    --gradient-primary: linear-gradient(135deg, hsl(220 90% 56%), hsl(270 60% 55%));
+    --gradient-glow: linear-gradient(135deg, hsl(220 90% 56% / 0.3), hsl(270 60% 55% / 0.3));
+    --gradient-card: linear-gradient(135deg, hsl(230 25% 12% / 0.8), hsl(230 25% 8% / 0.8));
+    --shadow-glow: 0 0 30px hsl(220 90% 56% / 0.15), 0 0 60px hsl(270 60% 55% / 0.1);
+    --shadow-glow-strong: 0 0 40px hsl(220 90% 56% / 0.3), 0 0 80px hsl(270 60% 55% / 0.15);
+
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 0%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-card/60 backdrop-blur-xl border border-border/50 rounded-xl;
+    box-shadow: var(--shadow-glow);
+  }
+
+  .glass-card-strong {
+    @apply bg-card/80 backdrop-blur-2xl border border-border/60 rounded-xl;
+    box-shadow: var(--shadow-glow-strong);
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-primary);
+  }
+
+  .gradient-border {
+    position: relative;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: var(--gradient-primary);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  .glow-effect {
+    box-shadow: var(--shadow-glow);
+    transition: box-shadow 0.3s ease;
+  }
+
+  .glow-effect:hover {
+    box-shadow: var(--shadow-glow-strong);
+  }
+
+  .btn-gradient {
+    background-image: var(--gradient-primary);
+    @apply text-primary-foreground font-semibold px-6 py-3 rounded-lg transition-all duration-300;
+    box-shadow: 0 4px 15px hsl(220 90% 56% / 0.3);
+  }
+
+  .btn-gradient:hover {
+    box-shadow: 0 6px 25px hsl(220 90% 56% / 0.5);
+    transform: translateY(-1px);
+  }
+
+  .step-indicator {
+    @apply w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold;
+  }
+
+  .step-indicator-active {
+    background-image: var(--gradient-primary);
+    @apply text-primary-foreground;
+    box-shadow: 0 0 20px hsl(220 90% 56% / 0.4);
+  }
+
+  .step-indicator-completed {
+    @apply bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))];
+  }
+
+  .step-indicator-pending {
+    @apply bg-muted text-muted-foreground;
+  }
+}
+
+@layer utilities {
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px hsl(220 90% 56% / 0.2); }
+    50% { box-shadow: 0 0 40px hsl(220 90% 56% / 0.4), 0 0 60px hsl(270 60% 55% / 0.2); }
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "nav": {
+    "home": "الرئيسية",
+    "create": "إنشاء عملة",
+    "defi": "DeFi",
+    "createLiquidity": "إنشاء سيولة",
+    "swap": "تبادل",
+    "removeLiquidity": "سحب السيولة",
+    "burn": "حرق",
+    "burnAndEarn": "احرق واربح",
+    "dashboard": "لوحة التحكم",
+    "gallery": "المعرض",
+    "analytics": "التحليلات",
+    "leaderboard": "المتصدرون",
+    "hosting": "الاستضافة",
+    "profile": "الملف الشخصي",
+    "staking": "الإيداع",
+    "governance": "الحوكمة",
+    "launchpad": "منصة الإطلاق",
+    "notifications": "الإشعارات"
+  },
+  "common": {
+    "connect": "ربط المحفظة",
+    "connecting": "جارٍ الربط...",
+    "loading": "تحميل...",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "back": "رجوع",
+    "next": "التالي",
+    "language": "اللغة",
+    "theme": "السمة",
+    "dark": "داكن",
+    "light": "فاتح",
+    "system": "النظام"
+  },
+  "staking": {
+    "title": "الإيداع والربح",
+    "subtitle": "أودع GYDS أو رموز LP لكسب المكافآت",
+    "stake": "إيداع",
+    "unstake": "سحب",
+    "claim": "استلام المكافآت",
+    "apr": "العائد السنوي",
+    "totalStaked": "إجمالي المودع",
+    "yourStake": "إيداعك",
+    "pendingRewards": "مكافآت معلقة",
+    "noPools": "لا توجد برك إيداع بعد"
+  },
+  "governance": {
+    "title": "الحوكمة",
+    "subtitle": "صوّت على المقترحات التي تشكل المنصة",
+    "newProposal": "مقترح جديد",
+    "for": "مع",
+    "against": "ضد",
+    "abstain": "امتناع",
+    "active": "نشط",
+    "ended": "منتهي",
+    "noProposals": "لا توجد مقترحات بعد"
+  },
+  "launchpad": {
+    "title": "منصة إطلاق العملات",
+    "subtitle": "بيع مسبق عادل مع جدول استحقاق",
+    "create": "إنشاء بيع مسبق",
+    "contribute": "ساهم",
+    "claim": "استلام الرموز",
+    "refund": "استرداد",
+    "softCap": "الحد الأدنى",
+    "hardCap": "الحد الأقصى",
+    "raised": "تم جمع",
+    "ends": "ينتهي خلال"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "empty": "كل شيء تم!",
+    "markAllRead": "وضع علامة مقروء"
+  }
+}

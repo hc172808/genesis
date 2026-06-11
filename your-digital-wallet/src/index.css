@@ -1,0 +1,106 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 20% 7%;
+    --foreground: 0 0% 98%;
+
+    --card: 220 18% 10%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 220 18% 12%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 160 84% 50%;
+    --primary-foreground: 220 20% 7%;
+
+    --secondary: 220 16% 16%;
+    --secondary-foreground: 0 0% 90%;
+
+    --muted: 220 14% 14%;
+    --muted-foreground: 220 10% 55%;
+
+    --accent: 180 70% 50%;
+    --accent-foreground: 220 20% 7%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 220 14% 18%;
+    --input: 220 14% 18%;
+    --ring: 160 84% 50%;
+
+    --radius: 1rem;
+
+    --wallet-gradient: linear-gradient(135deg, hsl(160, 84%, 50%), hsl(180, 70%, 50%), hsl(200, 80%, 55%));
+    --wallet-gradient-warm: linear-gradient(135deg, hsl(35, 95%, 55%), hsl(15, 90%, 55%));
+    --wallet-gradient-purple: linear-gradient(135deg, hsl(270, 70%, 55%), hsl(300, 60%, 50%));
+    --wallet-glow: 0 0 40px hsl(160 84% 50% / 0.3);
+    --wallet-glow-accent: 0 0 40px hsl(180 70% 50% / 0.2);
+
+    --success: 145 70% 50%;
+    --warning: 35 95% 55%;
+
+    --sidebar-background: 220 18% 10%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 160 84% 50%;
+    --sidebar-primary-foreground: 220 20% 7%;
+    --sidebar-accent: 220 16% 16%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 220 14% 18%;
+    --sidebar-ring: 160 84% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+@layer utilities {
+  .gradient-primary {
+    background: var(--wallet-gradient);
+  }
+
+  .gradient-warm {
+    background: var(--wallet-gradient-warm);
+  }
+
+  .gradient-purple {
+    background: var(--wallet-gradient-purple);
+  }
+
+  .glow-primary {
+    box-shadow: var(--wallet-glow);
+  }
+
+  .glow-accent {
+    box-shadow: var(--wallet-glow-accent);
+  }
+
+  .text-gradient {
+    background: var(--wallet-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glass {
+    background: hsl(220 18% 10% / 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid hsl(220 14% 18% / 0.5);
+  }
+}

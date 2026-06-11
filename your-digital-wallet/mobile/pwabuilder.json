@@ -1,0 +1,17 @@
+{
+  "name": "GYDS Wallet",
+  "short_name": "GYDS",
+  "description": "GYDS Network Wallet — send, receive, swap, and manage GYDS & GYD on the go.",
+  "packageId": "io.netlifegy.gyds",
+  "version": "1.0.0",
+  "versionCode": 1,
+  "themeColor": "#0f1318",
+  "backgroundColor": "#0f1318",
+  "display": "standalone",
+  "orientation": "portrait",
+  "startUrl": "/",
+  "iconUrl": "/pwa-512x512.png",
+  "maskableIconUrl": "/pwa-512x512.png",
+  "monochromeIconUrl": "/pwa-192x192.png",
+  "signingMode": "new"
+}
