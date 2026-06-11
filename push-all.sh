@@ -80,7 +80,7 @@ REPO_DIRS=(
 # Files/dirs to sync for each repo
 declare -A REPO_FILES
 REPO_FILES=(
-  [rpcnode]="rpc/server.go rpc/metrics.go rpc/embed.go rpc/static/index.html setup-rpcnode-server.sh setup-firewall.sh setup-wireguard.sh fail2ban"
+  [rpcnode]="rpc/server.go rpc/metrics.go rpc/embed.go rpc/static/index.html setup-rpcnode-server.sh setup-firewall.sh setup-wireguard.sh fail2ban grafana"
   [validatornode]="setup-validatornode-server.sh setup-firewall.sh setup-wireguard.sh fail2ban wireguard"
   [fullnode]="rpc/server.go rpc/embed.go rpc/static/index.html setup-firewall.sh setup-wireguard.sh fail2ban wireguard"
   [litenode]="rpc/server.go rpc/embed.go rpc/static/index.html setup-firewall.sh setup-wireguard.sh fail2ban wireguard"

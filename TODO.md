@@ -64,6 +64,8 @@ Wallets, websites, dApps, and block explorers all connect through it.
 - [ ] Load balancer config (HAProxy / Cloudflare) for high-availability
 - [ ] Multiple RPC node instances behind a single domain
 - [x] Prometheus metrics endpoint (`/metrics`) for Grafana monitoring
+- [x] Pre-built Grafana dashboard JSON (import-ready, auto-provisioned)
+- [x] Docker Compose monitoring stack (Prometheus + Grafana, one command)
 - [ ] Uptime status page (Uptime Kuma or similar)
 - [ ] DDoS protection (Cloudflare proxy)
 - [ ] Backup node with automatic failover
