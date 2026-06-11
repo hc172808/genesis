@@ -66,7 +66,7 @@ Wallets, websites, dApps, and block explorers all connect through it.
 - [x] Prometheus metrics endpoint (`/metrics`) for Grafana monitoring
 - [x] Pre-built Grafana dashboard JSON (import-ready, auto-provisioned)
 - [x] Docker Compose monitoring stack (Prometheus + Grafana, one command)
-- [ ] Uptime status page (Uptime Kuma or similar)
+- [x] Uptime status page (Uptime Kuma — Docker Compose + auto-monitor setup script)
 - [ ] DDoS protection (Cloudflare proxy)
 - [ ] Backup node with automatic failover
 
