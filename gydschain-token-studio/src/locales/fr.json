@@ -1,0 +1,77 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "create": "Créer un Token",
+    "defi": "DeFi",
+    "createLiquidity": "Ajouter Liquidité",
+    "swap": "Échanger",
+    "removeLiquidity": "Retirer Liquidité",
+    "burn": "Brûler",
+    "burnAndEarn": "Brûler & Gagner",
+    "dashboard": "Tableau",
+    "gallery": "Galerie",
+    "analytics": "Analyses",
+    "leaderboard": "Classement",
+    "hosting": "Hébergement",
+    "profile": "Profil",
+    "staking": "Staking",
+    "governance": "Gouvernance",
+    "launchpad": "Launchpad",
+    "notifications": "Notifications"
+  },
+  "common": {
+    "connect": "Connecter Wallet",
+    "connecting": "Connexion...",
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "next": "Suivant",
+    "language": "Langue",
+    "theme": "Thème",
+    "dark": "Sombre",
+    "light": "Clair",
+    "system": "Système"
+  },
+  "staking": {
+    "title": "Stake & Gagne",
+    "subtitle": "Stake GYDS ou tokens LP pour gagner des récompenses",
+    "stake": "Staker",
+    "unstake": "Retirer",
+    "claim": "Réclamer",
+    "apr": "APR",
+    "totalStaked": "Total Staké",
+    "yourStake": "Votre Stake",
+    "pendingRewards": "Récompenses",
+    "noPools": "Aucun pool disponible"
+  },
+  "governance": {
+    "title": "Gouvernance",
+    "subtitle": "Votez sur les propositions",
+    "newProposal": "Nouvelle Proposition",
+    "for": "Pour",
+    "against": "Contre",
+    "abstain": "Abstention",
+    "active": "Actif",
+    "ended": "Terminé",
+    "noProposals": "Aucune proposition"
+  },
+  "launchpad": {
+    "title": "Launchpad Token",
+    "subtitle": "Présales équitables avec vesting",
+    "create": "Créer Présale",
+    "contribute": "Contribuer",
+    "claim": "Réclamer Tokens",
+    "refund": "Remboursement",
+    "softCap": "Soft Cap",
+    "hardCap": "Hard Cap",
+    "raised": "Levé",
+    "ends": "Fin dans"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "Tout est à jour",
+    "markAllRead": "Tout marquer comme lu"
+  }
+}

@@ -1,0 +1,62 @@
+# ══════════════════════════════════════════════════════════
+#  GYDS Chain — Validator Node  /  fail2ban jail.local
+#  Copy to: /etc/fail2ban/jail.local
+#  The setup script does this automatically.
+#
+#  The validator node is a HIGH-VALUE target.
+#  Rules are intentionally stricter than other nodes.
+# ══════════════════════════════════════════════════════════
+
+[DEFAULT]
+bantime        = 86400         # 24 hours default (validator = critical)
+findtime       = 300
+maxretry       = 3
+banaction      = ufw
+banaction_allports = ufw
+loglevel       = INFO
+logtarget      = /var/log/fail2ban.log
+backend        = auto
+
+ignoreip       = 127.0.0.1/8 ::1 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
+
+# ── SSH hardening (STRICT) ───────────────────────────────
+[sshd]
+enabled        = true
+port           = ssh
+filter         = sshd
+logpath        = %(sshd_log)s
+maxretry       = 3             # 3 failures = 48-hour ban
+bantime        = 172800        # 48 hours — validator is high value
+findtime       = 600
+
+# ── Block anyone probing the validator RPC port ──────────
+# The RPC port should NEVER be reached from outside.
+# Any attempt = immediate 7-day ban.
+[gyds-validator-rpc-probe]
+enabled        = true
+filter         = gyds-validator-rpc-probe
+port           = 8545
+logpath        = /var/log/ufw.log
+maxretry       = 1             # Even one attempt = ban
+bantime        = 604800        # 7-day ban
+findtime       = 3600
+
+# ── P2P port flood ───────────────────────────────────────
+[gyds-p2p-flood]
+enabled        = true
+filter         = gyds-p2p-flood
+port           = 30303
+logpath        = /var/log/ufw.log
+maxretry       = 50
+findtime       = 60
+bantime        = 3600
+
+# ── Repeat offenders ─────────────────────────────────────
+[recidive]
+enabled        = true
+filter         = recidive
+logpath        = /var/log/fail2ban.log
+action         = ufw
+bantime        = 2592000       # 30 days for repeat validator attackers
+findtime       = 86400
+maxretry       = 2

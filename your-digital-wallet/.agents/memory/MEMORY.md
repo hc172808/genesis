@@ -1,0 +1,2 @@
+- [Vite port + lovable-tagger](vite-config.md) — vite must run on port 5000 for webview; lovable-tagger must be installed or Vite fails to start.
+- [TypeScript check command](ts-check.md) — `npx tsc` / `node` not on PATH by default; run via bash with nvm path or confirm zero errors by watching workflow logs.
