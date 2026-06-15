@@ -1,48 +1,6 @@
-<<<<<<< HEAD
 modules = ["bash"]
-=======
-modules = ["bash", "python-3.11", "nodejs-20", "go"]
->>>>>>> 062f55fd2535160f0b7ba16341423de3d21900f7
 [agent]
 expertMode = true
 
 [nix]
 channel = "stable-25_05"
-<<<<<<< HEAD
-=======
-
-[userenv]
-
-[userenv.shared]
-VITE_SUPABASE_URL = "https://qdtsheoodhxmggiavukj.supabase.co"
-VITE_SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkdHNoZW9vZGh4bWdnaWF2dWtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1OTUzMjgsImV4cCI6MjA3OTE3MTMyOH0.IvQINOHea1EwK5H89acHlyRw0dLuOcBMCUuvRgTXsr8"
-VITE_SUPABASE_PROJECT_ID = "qdtsheoodhxmggiavukj"
-
-[workflows]
-runButton = "Project"
-
-[[workflows.workflow]]
-name = "Project"
-mode = "parallel"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Start application"
-
-[[workflows.workflow]]
-name = "Start application"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd bank-connect-hub && npm run dev"
-waitForPort = 5000
-
-[workflows.workflow.metadata]
-outputType = "webview"
-
-[[ports]]
-localPort = 5000
-externalPort = 80
->>>>>>> 062f55fd2535160f0b7ba16341423de3d21900f7
