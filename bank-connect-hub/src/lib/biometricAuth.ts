@@ -156,10 +156,13 @@ export async function enrollBiometric(
 
 /**
  * Authenticate with biometrics. Looks up stored credential and verifies.
- * Returns the user_id associated with the credential on success.
+ * Returns the credentialId (and phone) associated with the credential on success.
  */
 export async function authenticateWithBiometric(): Promise<{
   success: boolean;
+  /** The WebAuthn credential ID — pass this to getBiometricAuthData() */
+  credentialId?: string;
+  /** The phone number linked to this credential */
   userId?: string;
   error?: string;
 }> {
@@ -186,7 +189,7 @@ export async function authenticateWithBiometric(): Promise<{
       return { success: false, error: "No account linked to this biometric. Please sign in with password first and enroll." };
     }
 
-    return { success: true, userId: storedPhone };
+    return { success: true, credentialId, userId: storedPhone };
   } catch (err: any) {
     if (err.name === "NotAllowedError") return { success: false, error: "cancelled" };
     return { success: false, error: err.message || "Biometric authentication failed" };
@@ -200,17 +203,36 @@ export function linkCredentialToPhone(credentialId: string, phoneNumber: string,
   localStorage.setItem(`biometric_phone_${credentialId}`, phoneNumber);
   // Store encrypted password reference for auto-login
   localStorage.setItem(`biometric_cred_${phoneNumber}`, credentialId);
-  // Store password in sessionStorage-like encrypted form (base64 only — not truly secure but enables auto-login)
-  localStorage.setItem(`biometric_auth_${credentialId}`, btoa(password));
+  // Keep password only for the browser session (cleared when tab/window closes).
+  // Base64 is not encryption, but sessionStorage at least prevents persistence
+  // across browser restarts and is not accessible to other origins.
+  sessionStorage.setItem(`biometric_auth_${credentialId}`, btoa(password));
 }
 
 /**
- * Get stored auth data for biometric login
+ * Get stored auth data for biometric login.
+ * Reads the password from sessionStorage (written by linkCredentialToPhone).
+ * Falls back to the legacy localStorage key for users enrolled before the
+ * sessionStorage migration, then removes the insecure localStorage entry.
  */
 export function getBiometricAuthData(credentialId: string): { phone: string; password: string } | null {
   const phone = localStorage.getItem(`biometric_phone_${credentialId}`);
-  const encPassword = localStorage.getItem(`biometric_auth_${credentialId}`);
-  if (!phone || !encPassword) return null;
+  if (!phone) return null;
+
+  let encPassword = sessionStorage.getItem(`biometric_auth_${credentialId}`);
+
+  // Migration: older enrollments stored the password in localStorage.
+  // Move it to sessionStorage and delete the persistent copy.
+  if (!encPassword) {
+    const legacy = localStorage.getItem(`biometric_auth_${credentialId}`);
+    if (legacy) {
+      sessionStorage.setItem(`biometric_auth_${credentialId}`, legacy);
+      localStorage.removeItem(`biometric_auth_${credentialId}`);
+      encPassword = legacy;
+    }
+  }
+
+  if (!encPassword) return null;
   return { phone, password: atob(encPassword) };
 }
 

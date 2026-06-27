@@ -115,17 +115,21 @@ const PrintQRCodes = () => {
     return `${addr.slice(0, 10)}…${addr.slice(-8)}`;
   };
 
+  /** Escape user-supplied strings before inserting into document.write HTML. */
+  const escHtml = (s: string) =>
+    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
   const doPrint = () => {
     if (!selectedUser || !frontQrRef.current || !backQrRef.current) return;
     const printWindow = window.open("", "_blank", "width=900,height=700");
     if (!printWindow) return;
     const frontSvg = frontQrRef.current.innerHTML;
     const backSvg = backQrRef.current.innerHTML;
-    const fullName = selectedUser.full_name || "Unnamed User";
-    const phone = selectedUser.phone_number || "—";
-    const wallet = selectedUser.wallet_address || "Not assigned";
-    const store = selectedUser.store_name || "";
-    const idShort = selectedUser.id.slice(0, 8).toUpperCase();
+    const fullName = escHtml(selectedUser.full_name || "Unnamed User");
+    const phone = escHtml(selectedUser.phone_number || "—");
+    const wallet = escHtml(selectedUser.wallet_address || "Not assigned");
+    const store = escHtml(selectedUser.store_name || "");
+    const idShort = escHtml(selectedUser.id.slice(0, 8).toUpperCase());
     const issued = new Date().toLocaleDateString();
     printWindow.document.write(`<!doctype html>
 <html><head><meta charset="utf-8"/><title>QR Card – ${fullName}</title>

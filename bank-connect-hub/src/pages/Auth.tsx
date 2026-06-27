@@ -57,7 +57,7 @@ const Auth = () => {
         return;
       }
 
-      const authData = getBiometricAuthData(result.userId!);
+      const authData = getBiometricAuthData(result.credentialId!);
       if (!authData) {
         toast({ variant: "destructive", title: "No Linked Account", description: "Please sign in with password first, then enroll biometrics from Profile settings." });
         return;
